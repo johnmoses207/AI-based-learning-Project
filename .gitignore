@@ -1,0 +1,21 @@
+# Python
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/venv/
+**/.env
+
+# JavaScript / Node.js
+**/node_modules/
+**/dist/
+**/.vscode/
+
+# DB
+**/*.db
+
+# Logs
+**/*.log
+eduverse/backend/trace_output.txt
+
+# OS
+.DS_Store
