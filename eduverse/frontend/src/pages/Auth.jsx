@@ -49,6 +49,12 @@ export default function Auth() {
 
     const GOOGLE_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
+    // Diagnostic on mount
+    useState(() => {
+        console.log("🔍 Google Auth Debug: VITE_GOOGLE_CLIENT_ID =", GOOGLE_ID ? "PRESENT" : "MISSING");
+        if (GOOGLE_ID) console.log("🔍 Google Auth Debug: Client ID Value =", GOOGLE_ID.substring(0, 10) + "...");
+    });
+
     const handleAuth = async (isLoginRequest) => {
         setError("");
         const endpoint = isLoginRequest ? "/auth/login" : "/auth/register";
@@ -71,22 +77,26 @@ export default function Auth() {
 
     const handleGoogleLogin = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
+            console.log("🔍 Google Auth Debug: Success! Token received from Google.");
             try {
                 const res = await api.post("/auth/google", {
                     token: tokenResponse.access_token,
                 });
+                console.log("🔍 Google Auth Debug: Backend accepted token.");
                 localStorage.setItem("token", res.data.access_token);
                 if (res.data.user) {
-                    // Store user info if needed
                     localStorage.setItem("user", JSON.stringify(res.data.user));
                 }
                 navigate("/dashboard");
             } catch (err) {
-                console.error("Google Login Error:", err);
-                setError("Google Login Failed");
+                console.error("🔍 Google Auth Debug: Backend rejected token:", err.response?.data || err.message);
+                setError(`Google Auth Rejection: ${err.response?.data?.detail || "Check Backend Logs"}`);
             }
         },
-        onError: () => setError("Google Login Failed"),
+        onError: (error) => {
+            console.error("🔍 Google Auth Debug: Google Popup Error:", error);
+            setError(`Google Popup Failed: ${error.error_description || "Unknown Error"}`);
+        },
     });
 
     // Shared Form Component

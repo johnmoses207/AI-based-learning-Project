@@ -59,10 +59,25 @@ Once your backend is running on Render, you need to create the tables in Supabas
 
 ---
 
-## 🏁 Final Step (CORS Update)
-Once your Vercel frontend is live (e.g., `https://eduverse-user.vercel.app`):
-1.  Go back to your **Render Dashboard**.
-2.  Update the `FRONTEND_URL` environment variable with your actual Vercel URL.
-3.  This ensures the backend allows your live website to talk to it.
+## 5. 🔑 Google OAuth Setup (Login with Google)
+1.  Go to the [Google Cloud Console](https://console.cloud.google.com/).
+2.  Create a new project (e.g., `EduVerse`).
+3.  Go to **APIs & Services** > **Credentials**.
+4.  Click **Create Credentials** > **OAuth client ID**.
+5.  Select **Web application**.
+6.  **Authorized JavaScript origins**:
+    *   `http://localhost:5173`
+    *   `https://your-frontend-url.vercel.app`
+7.  Click **Create** and copy your **Client ID**.
+8.  Add this to your environment variables:
+    *   **Vercel**: `VITE_GOOGLE_CLIENT_ID`
+    *   **Render**: `GOOGLE_CLIENT_ID` (if needed by backend, though backend usually just validates)
+
+---
+
+## 🏁 Final Step (CORS & Verification)
+1.  Ensure your **Render** `FRONTEND_URL` is set to your Vercel URL.
+2.  Ensure your **Vercel** `VITE_API_URL` is set to your Render backend URL.
+3.  Test Login, Registration, and Google Auth!
 
 **You are now fully deployed! 🚀**

@@ -43,6 +43,7 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
 
 @router.post("/google")
 def google_login(payload: GoogleLogin, db: Session = Depends(get_db)):
+    print(f"DEBUG: Google Auth request received. Token prefix: {payload.token[:10]}...")
     # Verify token with Google
     try:
         # If using access_token approach:
