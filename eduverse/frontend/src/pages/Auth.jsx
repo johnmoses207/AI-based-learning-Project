@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../services/api";
 import { useGoogleLogin } from '@react-oauth/google';
 
 // Google Icon SVG
@@ -47,9 +47,9 @@ export default function Auth() {
 
     const handleAuth = async (isLoginRequest) => {
         setError("");
-        const endpoint = isLoginRequest ? "/api/auth/login" : "/api/auth/register";
+        const endpoint = isLoginRequest ? "/auth/login" : "/auth/register";
         try {
-            const res = await axios.post(`http://127.0.0.1:8000${endpoint}`, { email, password });
+            const res = await api.post(endpoint, { email, password });
             if (isLoginRequest) {
                 localStorage.setItem("token", res.data.access_token);
                 if (res.data.user) {
@@ -68,7 +68,7 @@ export default function Auth() {
     const handleGoogleLogin = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
             try {
-                const res = await axios.post("http://127.0.0.1:8000/api/auth/google", {
+                const res = await api.post("/auth/google", {
                     token: tokenResponse.access_token,
                 });
                 localStorage.setItem("token", res.data.access_token);
