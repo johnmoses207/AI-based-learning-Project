@@ -39,11 +39,15 @@ const RobotCharacter = () => (
 );
 
 export default function Auth() {
-    const [isLogin, setIsLogin] = useState(true); // Default True = Login Mode (Overlay on Left)
+    console.log("📂 EduVerse: Auth Component Rendering...");
+    
+    const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const navigate = useNavigate();
+
+    const GOOGLE_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
     const handleAuth = async (isLoginRequest) => {
         setError("");
