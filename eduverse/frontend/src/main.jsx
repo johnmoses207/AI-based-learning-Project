@@ -4,6 +4,7 @@ import App from "./App";
 import "./index.css";
 
 
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 // Diagnostic Logging
 console.log("🚀 EduVerse: App Initialization Started...");
