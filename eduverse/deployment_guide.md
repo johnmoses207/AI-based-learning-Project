@@ -1,17 +1,18 @@
 # 🚀 Full-Stack Deployment Guide (Free Tier)
 
-This guide will walk you through deploying your **EduVerse Agentic AI** project for free using **Supabase**, **Render**, and **Vercel**.
+This guide will walk you through deploying your **EduVerse Agentic AI** project for free using **Neon Console**, **Render**, and **Vercel**.
 
 ---
 
-## 1. 🗄️ Database Setup (Supabase)
-Supabase provides a free PostgreSQL database that keeps your data persistent.
+## 1. 🗄️ Database Setup (Neon Console)
+Neon provides a serverless PostgreSQL database that is perfect for Render.
 
-1.  Go to [Supabase.com](https://supabase.com/) and create a free project.
-2.  In your Project Dashboard, go to **Project Settings** > **Database**.
-3.  Copy the **Connection String** (use the one for `SQLAlchemy` or `URI`).
-    *   It should look like: `postgresql://postgres.[YOUR-ID]:[YOUR-PASSWORD]@aws-0-us-east-1.pooler.supabase.com:6543/postgres`
-4.  **Important**: If the URL starts with `postgres://`, change it to `postgresql://` (FastAPI/SQLAlchemy requires the `ql` at the end).
+1.  Go to [Neon.tech](https://neon.tech/) and create a free project.
+2.  In your Project Dashboard, go to **Connection Details**.
+3.  Select **SQLAlchemy** or **URI** from the dropdown.
+4.  Copy the **Connection String**.
+    *   It should look like: `postgresql://alex:[PASSWORD]@ep-cool-darkness-123456.us-east-2.aws.neon.tech/neondb`
+5.  **Note**: The backend now automatically handles SSL and connection pooling for Neon.
 
 ---
 

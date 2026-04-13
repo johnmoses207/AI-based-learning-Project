@@ -61,9 +61,179 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(certificate_router, prefix="/api/certificates", tags=["Certificates"])
 
+from fastapi.responses import HTMLResponse
+
 @app.get("/", tags=["Health"])
 def health():
-    return {"status": "Backend running 🚀"}
+    return HTMLResponse(content=f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>EduVerse API | System Live</title>
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
+        <style>
+            :root {{
+                --bg: #030712;
+                --primary: #10b981;
+                --secondary: #3b82f6;
+                --accent: #f59e0b;
+                --text: #f3f4f6;
+                --muted: #9ca3af;
+                --card-bg: rgba(17, 24, 39, 0.7);
+            }}
+
+            * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+            
+            body {{
+                font-family: 'Outfit', sans-serif;
+                background-color: var(--bg);
+                color: var(--text);
+                height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+            }}
+
+            .aurora {{
+                position: fixed;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: 
+                    radial-gradient(circle at 20% 30%, rgba(16, 185, 129, 0.15) 0%, transparent 40%),
+                    radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.15) 0%, transparent 40%);
+                z-index: -1;
+                filter: blur(100px);
+                animation: drift 20s infinite alternate linear;
+            }}
+
+            @keyframes drift {{
+                from {{ transform: scale(1); }}
+                to {{ transform: scale(1.2) rotate(5deg); }}
+            }}
+
+            .container {{
+                background: var(--card-bg);
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 3rem;
+                border-radius: 2rem;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+                text-align: center;
+                max-width: 500px;
+                width: 90%;
+            }}
+
+            .badge {{
+                display: inline-flex;
+                align-items: center;
+                background: rgba(16, 185, 129, 0.1);
+                border: 1px solid rgba(16, 185, 129, 0.2);
+                color: var(--primary);
+                padding: 0.5rem 1rem;
+                border-radius: 2rem;
+                font-size: 0.875rem;
+                font-weight: 600;
+                margin-bottom: 1.5rem;
+            }}
+
+            .dot {{
+                width: 8px;
+                height: 8px;
+                background-color: var(--primary);
+                border-radius: 50%;
+                margin-right: 8px;
+                box-shadow: 0 0 10px var(--primary);
+                animation: pulse 2s infinite;
+            }}
+
+            @keyframes pulse {{
+                0% {{ opacity: 1; transform: scale(1); }}
+                50% {{ opacity: 0.5; transform: scale(0.8); }}
+                100% {{ opacity: 1; transform: scale(1); }}
+            }}
+
+            h1 {{
+                font-size: 2.5rem;
+                font-weight: 600;
+                margin-bottom: 1rem;
+                background: linear-gradient(to right, #fff, var(--muted));
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }}
+
+            p {{
+                color: var(--muted);
+                line-height: 1.6;
+                margin-bottom: 2rem;
+            }}
+
+            .actions {{
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }}
+
+            .btn {{
+                text-decoration: none;
+                padding: 1rem 2rem;
+                border-radius: 1rem;
+                font-weight: 600;
+                transition: all 0.3s ease;
+            }}
+
+            .btn-primary {{
+                background: var(--primary);
+                color: var(--bg);
+            }}
+
+            .btn-primary:hover {{
+                transform: translateY(-2px);
+                box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+                filter: brightness(1.1);
+            }}
+
+            .btn-outline {{
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                color: var(--text);
+            }}
+
+            .btn-outline:hover {{
+                background: rgba(255, 255, 255, 0.05);
+            }}
+
+            .footer-links {{
+                margin-top: 2rem;
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 0.75rem;
+                color: rgba(255, 255, 255, 0.3);
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="aurora"></div>
+        <div class="container">
+            <div class="badge">
+                <div class="dot"></div>
+                SYSTEM LIVE
+            </div>
+            <h1>EduVerse API</h1>
+            <p>The agentic intelligence core of your personalized learning journey is active and responding.</p>
+            
+            <div class="actions">
+                <a href="/docs" class="btn btn-primary">Explorer Documentation</a>
+                <a href="/debug/routes" class="btn btn-outline">Check Endpoints</a>
+            </div>
+
+            <div class="footer-links">
+                NODE_ENV: PRODUCTION | VERSION: 1.0.0
+            </div>
+        </div>
+    </body>
+    </html>
+    """)
+
 @app.get("/debug/routes", tags=["Debug"])
 def list_routes():
     return [
