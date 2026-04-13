@@ -7,20 +7,16 @@ import "./index.css";
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
-const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
 if (!clientId) {
-  console.warn("⚠️ VITE_GOOGLE_CLIENT_ID is missing! Google Login will be disabled.");
+  console.warn("⚠️ VITE_GOOGLE_CLIENT_ID is missing! Google Login will be disabled, but the app will still function.");
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    {clientId ? (
-      <GoogleOAuthProvider clientId={clientId}>
-        <App />
-      </GoogleOAuthProvider>
-    ) : (
+    <GoogleOAuthProvider clientId={clientId}>
       <App />
-    )}
+    </GoogleOAuthProvider>
   </React.StrictMode>
 );

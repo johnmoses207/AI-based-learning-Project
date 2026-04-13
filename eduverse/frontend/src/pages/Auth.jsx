@@ -112,19 +112,23 @@ export default function Auth() {
                     {mode === "login" ? "Login" : "Register"}
                 </button>
 
-                {/* Social Login */}
-                <div className="relative flex items-center justify-center my-4">
-                    <div className="border-t border-white/10 w-full absolute"></div>
-                    <span className="bg-black px-2 text-xs text-gray-500 relative z-10 uppercase">Or continue with</span>
-                </div>
+                {/* Social Login - Only show if Google Client ID is configured */}
+                {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
+                    <>
+                        <div className="relative flex items-center justify-center my-4">
+                            <div className="border-t border-white/10 w-full absolute"></div>
+                            <span className="bg-black px-2 text-xs text-gray-500 relative z-10 uppercase">Or continue with</span>
+                        </div>
 
-                <button
-                    onClick={() => handleGoogleLogin()}
-                    className="w-full bg-white text-gray-900 border border-white/10 py-3 rounded-lg font-bold shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-3 hover:bg-gray-100 cursor-pointer"
-                >
-                    <GoogleIcon />
-                    <span>Google</span>
-                </button>
+                        <button
+                            onClick={() => handleGoogleLogin()}
+                            className="w-full bg-white text-gray-900 border border-white/10 py-3 rounded-lg font-bold shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-3 hover:bg-gray-100 cursor-pointer"
+                        >
+                            <GoogleIcon />
+                            <span>Google</span>
+                        </button>
+                    </>
+                )}
             </div>
         </div>
     );
