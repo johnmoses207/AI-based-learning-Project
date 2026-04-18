@@ -5,7 +5,9 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./eduverse.db")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+_frontend_raw = os.getenv("FRONTEND_URL", "http://localhost:5173")
+ALLOWED_ORIGINS = [url.strip() for url in _frontend_raw.split(",") if url.strip()]
+FRONTEND_URL = ALLOWED_ORIGINS[0] if ALLOWED_ORIGINS else "http://localhost:5173"
 
 # URL Sanitization for SQLAlchemy 1.4+
 if DATABASE_URL.startswith("postgres://"):
