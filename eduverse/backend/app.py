@@ -5,6 +5,7 @@ from slowapi.errors import RateLimitExceeded
 from core.limiter import limiter
 from core.config import FRONTEND_URL, ALLOWED_ORIGINS
 from database.db import engine, Base
+from sqlalchemy import text
 import database.models 
 import warnings
 
@@ -32,11 +33,49 @@ app = FastAPI(
     version="1.0.0"
 )
 
+def run_migrations():
+    print("🔧 Checking for database migrations...")
+    try:
+        with engine.connect() as conn:
+            # Check for students table columns
+            if "postgresql" in str(engine.url):
+                columns_to_add = [
+                    ("backup_email", "VARCHAR"),
+                    ("notifications_enabled", "BOOLEAN DEFAULT TRUE"),
+                    ("created_at", "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+                ]
+                for col_name, col_type in columns_to_add:
+                    # Check if column exists in Postgres
+                    check_query = text(f"SELECT 1 FROM information_schema.columns WHERE table_name='students' AND column_name='{col_name}'")
+                    if not conn.execute(check_query).fetchone():
+                        print(f"🔧 Adding missing column {col_name} to students table...")
+                        conn.execute(text(f"ALTER TABLE students ADD COLUMN {col_name} {col_type}"))
+            
+            elif "sqlite" in str(engine.url):
+                 # Simple SQLite check
+                res = conn.execute(text("PRAGMA table_info(students)")).fetchall()
+                existing_cols = [row[1] for row in res]
+                if "backup_email" not in existing_cols:
+                    conn.execute(text("ALTER TABLE students ADD COLUMN backup_email TEXT"))
+                if "notifications_enabled" not in existing_cols:
+                    conn.execute(text("ALTER TABLE students ADD COLUMN notifications_enabled BOOLEAN DEFAULT 1"))
+
+            conn.commit()
+            print("✅ Database Migrations Complete!")
+    except Exception as e:
+        print(f"⚠️ Migration Warning: {e}")
+
 @app.on_event("startup")
 def on_startup():
-    print("🚀 Initializing Database...")
+    print("🚀 App Startup Sequence Initiated...")
+    
+    # Run Migrations First
+    run_migrations()
+    
+    # Then ensure all other tables exist
+    print("🚀 Initializing Database Tables...")
     Base.metadata.create_all(bind=engine)
-    print("✅ Database tables ready!")
+    print("✅ System Ready!")
     print(f"🔒 Allowed CORS Origins: {ALLOWED_ORIGINS}")
 
 # Initialize Rate Limiter
