@@ -43,7 +43,26 @@ def on_startup():
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+# 🔍 DEEP DEBUG LOGGER
+from fastapi import Request
+import time
 
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = time.time()
+    print(f"🔍 DEBUG: Request {request.method} {request.url}")
+    print(f"🔍 DEBUG: Headers: {dict(request.headers)}")
+    
+    try:
+        response = await call_next(request)
+        process_time = time.time() - start_time
+        print(f"🔍 DEBUG: Status {response.status_code} | Time: {process_time:.4f}s")
+        return response
+    except Exception as e:
+        print(f"❌ DEBUG: Error processing request: {str(e)}")
+        raise e
+
+# CORS Middleware (Must be defined after the logger if we want to see CORS headers)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS + ["http://localhost:5173", "http://127.0.0.1:5173"],
