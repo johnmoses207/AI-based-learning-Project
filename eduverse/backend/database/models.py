@@ -16,6 +16,9 @@ class Student(Base):
     hours = Column(Integer)
     style = Column(String)
     role = Column(String, default="student")
+    backup_email = Column(String, nullable=True)
+    notifications_enabled = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 class Resource(Base):
     __tablename__ = "resources"

@@ -2,23 +2,13 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
-import { useGoogleLogin } from '@react-oauth/google';
+import { useAuth } from "../hooks/useAuth";
 
-// Google Icon SVG
-const GoogleIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.84z" fill="#FBBC05" />
-        <path d="M12 4.36c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.09 14.97 0 12 0 7.7 0 3.99 2.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-    </svg>
-);
-
-// Reuse Robot Component (same as before)
+// Shared Robot Component
 const RobotCharacter = () => (
     <motion.svg
-        width="250"
-        height="250"
+        width="220"
+        height="220"
         viewBox="0 0 200 200"
         initial={{ y: 20 }}
         animate={{ y: 0 }}
@@ -38,185 +28,225 @@ const RobotCharacter = () => (
     </motion.svg>
 );
 
-export default function Auth() {
-    console.log("📂 EduVerse: Auth Component Rendering...");
-    
-    const [isLogin, setIsLogin] = useState(true);
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
-    const navigate = useNavigate();
-
-    const GOOGLE_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-
-    // Diagnostic on mount
-    useState(() => {
-        console.log("🔍 Google Auth Debug: VITE_GOOGLE_CLIENT_ID =", GOOGLE_ID ? "PRESENT" : "MISSING");
-        if (GOOGLE_ID) console.log("🔍 Google Auth Debug: Client ID Value =", GOOGLE_ID.substring(0, 10) + "...");
-    });
-
-    const handleAuth = async (isLoginRequest) => {
-        setError("");
-        const endpoint = isLoginRequest ? "/auth/login" : "/auth/register";
-        try {
-            const res = await api.post(endpoint, { email, password });
-            if (isLoginRequest) {
-                localStorage.setItem("token", res.data.access_token);
-                if (res.data.user) {
-                    localStorage.setItem("user", JSON.stringify(res.data.user));
-                }
-                navigate("/dashboard");
-            } else {
-                setError("Account created! Please Sign In.");
-                setIsLogin(true); // Switch to login view
-            }
-        } catch (err) {
-            setError(err.response?.data?.detail || "Authentication Failed");
-        }
-    };
-
-    const handleGoogleLogin = useGoogleLogin({
-        onSuccess: async (tokenResponse) => {
-            console.log("🔍 Google Auth Debug: Success! Token received from Google.");
-            try {
-                const res = await api.post("/auth/google", {
-                    token: tokenResponse.access_token,
-                });
-                console.log("🔍 Google Auth Debug: Backend accepted token.");
-                localStorage.setItem("token", res.data.access_token);
-                if (res.data.user) {
-                    localStorage.setItem("user", JSON.stringify(res.data.user));
-                }
-                navigate("/dashboard");
-            } catch (err) {
-                console.error("🔍 Google Auth Debug: Backend rejected token:", err.response?.data || err.message);
-                setError(`Google Auth Rejection: ${err.response?.data?.detail || "Check Backend Logs"}`);
-            }
-        },
-        onError: (error) => {
-            console.error("🔍 Google Auth Debug: Google Popup Error:", error);
-            setError(`Google Popup Failed: ${error.error_description || "Unknown Error"}`);
-        },
-    });
-
-    // Shared Form Component
-    const AuthForm = ({ mode }) => (
-        <div className="flex flex-col items-center justify-center p-12 h-full text-white">
-            <h2 className="text-3xl font-bold mb-6">{mode === "login" ? "Sign In" : "Create Account"}</h2>
-            <div className="space-y-4 w-full max-w-xs">
+// Shared Form Component
+const AuthForm = ({ mode, email, setEmail, password, setPassword, error, message, loading, handleAuth }) => (
+    <div className="flex flex-col items-center justify-center p-8 md:p-12 h-full text-white">
+        <h2 className="text-3xl font-bold mb-6">{mode === "login" ? "Welcome Back" : "Join EduVerse"}</h2>
+        <div className="space-y-4 w-full max-w-xs">
+            <div className="group">
                 <input
                     type="email"
-                    placeholder="Email"
+                    placeholder="Email Address"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:border-indigo-500 outline-none"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all"
+                    disabled={loading}
                 />
+            </div>
+            <div className="group">
                 <input
                     type="password"
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:border-indigo-500 outline-none"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all"
+                    disabled={loading}
                 />
-                {error && <div className="text-red-400 text-sm">{error}</div>}
-                <button
-                    onClick={() => handleAuth(mode === "login")}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 py-3 rounded-lg font-bold shadow-lg transition-transform active:scale-95"
-                >
-                    {mode === "login" ? "Login" : "Register"}
-                </button>
-
-                {/* Social Login - Only show if Google Client ID is configured */}
-                {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
-                    <>
-                        <div className="relative flex items-center justify-center my-4">
-                            <div className="border-t border-white/10 w-full absolute"></div>
-                            <span className="bg-black px-2 text-xs text-gray-500 relative z-10 uppercase">Or continue with</span>
-                        </div>
-
-                        <button
-                            onClick={() => handleGoogleLogin()}
-                            className="w-full bg-white text-gray-900 border border-white/10 py-3 rounded-lg font-bold shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-3 hover:bg-gray-100 cursor-pointer"
-                        >
-                            <GoogleIcon />
-                            <span>Google</span>
-                        </button>
-                    </>
-                )}
             </div>
+            
+            <AnimatePresence mode="wait">
+                {error && (
+                    <motion.div 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="text-red-400 text-xs bg-red-400/10 border border-red-400/20 p-3 rounded-lg flex items-center gap-2"
+                    >
+                        <span className="w-1 h-1 bg-red-400 rounded-full animate-pulse" />
+                        {error}
+                    </motion.div>
+                )}
+                {message && (
+                    <motion.div 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="text-emerald-400 text-xs bg-emerald-400/10 border border-emerald-400/20 p-3 rounded-lg flex items-center gap-2"
+                    >
+                        <span className="w-1 h-1 bg-emerald-400 rounded-full animate-pulse" />
+                        {message}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <button
+                onClick={() => handleAuth(mode === "login")}
+                disabled={loading}
+                className={`w-full py-4 rounded-xl font-bold shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2 ${
+                    loading ? "bg-indigo-600/50 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-500/20"
+                }`}
+            >
+                {loading ? (
+                    <>
+                        <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        Processing...
+                    </>
+                ) : (
+                    mode === "login" ? "Sign In" : "Explore EduVerse"
+                )}
+            </button>
         </div>
-    );
+    </div>
+);
+
+export default function Auth() {
+    console.log("📂 EduVerse: Auth Page Initializing...");
+    
+    const [isLogin, setIsLogin] = useState(true);
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+    const [message, setMessage] = useState("");
+    const [loading, setLoading] = useState(false);
+    
+    const { login: authLogin } = useAuth();
+    const navigate = useNavigate();
+
+    const validateForm = () => {
+        if (!email || !password) {
+            setError("All fields are required");
+            return false;
+        }
+        if (!/\S+@\S+\.\S+/.test(email)) {
+            setError("Please enter a valid email address");
+            return false;
+        }
+        if (password.length < 6) {
+            setError("Password must be at least 6 characters long");
+            return false;
+        }
+        return true;
+    };
+
+    const handleAuth = async (isLoginRequest) => {
+        setError("");
+        setMessage("");
+        
+        if (!validateForm()) return;
+
+        setLoading(true);
+        const endpoint = isLoginRequest ? "/auth/login" : "/auth/register";
+        
+        try {
+            const res = await api.post(endpoint, { email, password });
+            
+            if (isLoginRequest) {
+                authLogin(res.data.user, res.data.access_token);
+                navigate("/dashboard");
+            } else {
+                setMessage("Welcome! Your account is ready. Please sign in.");
+                setIsLogin(true);
+                setPassword(""); // Clear password for security
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        } catch (err) {
+            console.error("Auth Exception:", err);
+            const detail = err.response?.data?.detail;
+            if (Array.isArray(detail)) {
+                setError(detail[0].msg || "Validation error");
+            } else if (typeof detail === 'string') {
+                setError(detail);
+            } else {
+                setError("Connection failed. Please try again later.");
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const commonProps = { email, setEmail, password, setPassword, error, message, loading, handleAuth };
 
     return (
-        <div className="min-h-screen bg-black flex items-center justify-center p-4">
+        <div className="min-h-screen bg-[#030712] flex items-center justify-center p-4 selection:bg-indigo-500/30">
+            {/* Background Decor */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/10 blur-[120px] rounded-full" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full" />
+            </div>
+
             {/* Main Card Container */}
-            <div className="relative w-full max-w-4xl h-[600px] bg-black/50 border border-white/10 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl">
+            <div className="relative w-full max-w-4xl h-[640px] bg-white/[0.02] border border-white/10 rounded-[2rem] shadow-2xl overflow-hidden backdrop-blur-2xl">
 
-                {/* REGISTER FORM (Sits on Left) */}
+                {/* REGISTER FORM */}
                 <div className="absolute top-0 left-0 w-1/2 h-full z-10 hidden md:block">
-                    <AuthForm mode="register" />
+                    <AuthForm mode="register" {...commonProps} />
                 </div>
 
-                {/* LOGIN FORM (Sits on Right) */}
+                {/* LOGIN FORM */}
                 <div className="absolute top-0 right-0 w-1/2 h-full z-10 hidden md:block">
-                    <AuthForm mode="login" />
+                    <AuthForm mode="login" {...commonProps} />
                 </div>
 
-                {/* MOBILE VIEW (Stacked) */}
-                <div className="md:hidden w-full h-full flex flex-col items-center justify-center">
-                    <AuthForm mode={isLogin ? "login" : "register"} />
-                    <button onClick={() => setIsLogin(!isLogin)} className="text-indigo-400 mt-4 underline">
-                        {isLogin ? "Need an account?" : "Have an account?"}
+                {/* MOBILE VIEW */}
+                <div className="md:hidden w-full h-full flex flex-col items-center justify-center p-6">
+                    <AuthForm mode={isLogin ? "login" : "register"} {...commonProps} />
+                    <button 
+                        onClick={() => setIsLogin(!isLogin)} 
+                        className="text-indigo-400 mt-6 text-sm font-medium hover:text-indigo-300 transition-colors"
+                        disabled={loading}
+                    >
+                        {isLogin ? "New here? Create an account" : "Already have an account? Sign in"}
                     </button>
                 </div>
 
-
-                {/* SLIDING OVERLAY (Desktop Only) */}
-                {/* If isLogin is TRUE: Overlay is on LEFT (covering Register). User sees Login on Right. */}
-                {/* If isLogin is FALSE: Overlay is on RIGHT (covering Login). User sees Register on Left. */}
-
+                {/* SLIDING OVERLAY (Desktop) */}
                 <motion.div
                     initial={false}
                     animate={{ x: isLogin ? "0%" : "100%" }}
-                    transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                    className="absolute top-0 left-0 w-1/2 h-full bg-indigo-900 z-20 hidden md:flex flex-col items-center justify-center p-12 text-center"
+                    transition={{ type: "spring", stiffness: 120, damping: 20 }}
+                    className="absolute top-0 left-0 w-1/2 h-full z-20 hidden md:flex flex-col items-center justify-center p-12 text-center"
                 >
-                    {/* Background FX inside Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-800 to-purple-900 opacity-90" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-indigo-900 shadow-inner" />
+                    
                     <div className="relative z-10 flex flex-col items-center">
-
-                        {/* Content changes based on position for context */}
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={isLogin ? "login-overlay" : "register-overlay"}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -20 }}
-                                transition={{ duration: 0.3 }}
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 1.1 }}
+                                transition={{ duration: 0.4 }}
                                 className="flex flex-col items-center"
                             >
                                 <RobotCharacter />
 
-                                <h2 className="text-3xl font-bold text-white mt-6 mb-2">
-                                    {isLogin ? "New to EduVerse?" : "Welcome Back!"}
+                                <h2 className="text-4xl font-bold text-white mt-8 mb-3">
+                                    {isLogin ? "Hello, Explorer!" : "Welcome Home"}
                                 </h2>
-                                <p className="text-indigo-200 mb-8 max-w-xs">
+                                <p className="text-indigo-100/80 mb-10 max-w-xs leading-relaxed">
                                     {isLogin
-                                        ? "Start your journey today. Create an account to meet your AI mentor."
-                                        : "Resume your progress. Your personalized roadmap awaits."}
+                                        ? "Sign up to begin your personalized AI-driven learning adventure."
+                                        : "Reconnect with your mentor and pick up right where you left off."}
                                 </p>
 
                                 <button
-                                    onClick={() => setIsLogin(!isLogin)}
-                                    className="px-8 py-3 border-2 border-white text-white rounded-full font-bold hover:bg-white hover:text-indigo-900 transition-colors"
+                                    onClick={() => {
+                                        setIsLogin(!isLogin);
+                                        setError("");
+                                        setMessage("");
+                                    }}
+                                    disabled={loading}
+                                    className="px-10 py-3.5 border-2 border-white/30 text-white rounded-2xl font-bold hover:bg-white hover:text-indigo-900 hover:border-white transition-all transform active:scale-95"
                                 >
-                                    {isLogin ? "Sign Up" : "Sign In"}
+                                    {isLogin ? "Get Started" : "Sign In"}
                                 </button>
                             </motion.div>
                         </AnimatePresence>
                     </div>
                 </motion.div>
-
             </div>
         </div>
     );

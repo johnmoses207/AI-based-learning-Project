@@ -11,6 +11,8 @@ export default function Onboarding() {
         goal: "",
         hours: "",
         style: "",
+        backup_email: "",
+        notifications_enabled: true,
     });
 
     const handleChange = (e) => {
@@ -58,6 +60,14 @@ export default function Onboarding() {
                     required
                     onChange={handleChange}
                     className="w-full mb-4 p-3 rounded bg-black/30"
+                />
+
+                <input
+                    name="backup_email"
+                    type="email"
+                    placeholder="Backup Email (for notifications)"
+                    onChange={handleChange}
+                    className="w-full mb-4 p-3 rounded bg-black/30 border border-white/5 focus:border-indigo-500 outline-none"
                 />
 
                 <select

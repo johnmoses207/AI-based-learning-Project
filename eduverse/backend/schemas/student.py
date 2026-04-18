@@ -5,3 +5,5 @@ class StudentCreate(BaseModel):
     goal: str
     hours: int
     style: str
+    backup_email: str | None = None
+    notifications_enabled: bool = True
