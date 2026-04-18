@@ -4,6 +4,8 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from core.limiter import limiter
 from core.config import FRONTEND_URL, ALLOWED_ORIGINS
+from database.db import engine, Base
+import database.models 
 import warnings
 
 # Suppress warnings about future deprecations to keep logs clean
@@ -29,6 +31,12 @@ app = FastAPI(
     title="Agentic AI Backend",
     version="1.0.0"
 )
+
+@app.on_event("startup")
+def on_startup():
+    print("🚀 Initializing Database...")
+    Base.metadata.create_all(bind=engine)
+    print("✅ Database tables ready!")
 
 # Initialize Rate Limiter
 app.state.limiter = limiter
