@@ -37,6 +37,7 @@ def on_startup():
     print("🚀 Initializing Database...")
     Base.metadata.create_all(bind=engine)
     print("✅ Database tables ready!")
+    print(f"🔒 Allowed CORS Origins: {ALLOWED_ORIGINS}")
 
 # Initialize Rate Limiter
 app.state.limiter = limiter
